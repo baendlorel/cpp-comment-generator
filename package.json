@@ -1,0 +1,82 @@
+{
+	"name": "cppcomment",
+	"publisher": "Hiyajo",
+	"displayName": "Cpp Comment Generator",
+	"description": "Generates comments for the chosen c++ function",
+	"icon": "images/logo.png",
+	"version": "1.0.0",
+	"engines": {
+		"vscode": "^1.33.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/baendlorel/cpp-comment-generator.git"
+	},
+	"categories": [
+		"Other"
+	],"activationEvents": [
+		"onCommand:extension.GenerateCppComment"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "extension.GenerateCppComment",
+				"title": "Generate Cpp Comment"
+			}
+		],
+		"keybindings": [
+			{
+			"command": "extension.GenerateCppComment",
+			"key": "ctrl+alt+z"
+		}],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "extension.GenerateCppComment",
+					"when": "editorLangId == cpp",
+					"group": "navigation"
+				}
+			]
+		},
+		"configuration":{
+			"title": "Cpp Function Comment Configuration",
+			"type":"object",
+			"properties": {
+				"cppComment.CompleteParamType": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables param comment to show {const int &} instead of {int}.",
+                    "scope": "window"
+				}, 
+				"cppComment.ShowParamType": {
+						"type": "boolean",
+						"default": true,
+						"description": "Tell the program whether to show {const int &} or not.",
+						"scope": "window"
+				},
+				"cppComment.Macros": {
+                    "type": "array",
+                    "default": ["API"],
+                    "description": "Tell the program to avoid these words.",
+                    "scope": "window"
+                }
+			}
+		}
+
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
+		"postinstall": "node ./node_modules/vscode/bin/install",
+		"test": "npm run compile && node ./node_modules/vscode/bin/test"
+	},
+	"devDependencies": {
+		"typescript": "^3.3.1",
+		"vscode": "^1.1.28",
+		"tslint": "^5.12.1",
+		"@types/node": "^10.12.21",
+		"@types/mocha": "^2.2.42"
+	}
+}
