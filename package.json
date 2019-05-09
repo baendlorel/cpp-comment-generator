@@ -4,7 +4,7 @@
 	"displayName": "Cpp Comment Generator",
 	"description": "Generates comments for the chosen c++ function",
 	"icon": "image/icon.png",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"engines": {
 		"vscode": "^1.33.0"
 	},

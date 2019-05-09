@@ -1,5 +1,7 @@
 import { Configuration } from './configuration';
 
+const UNIQUE_WORD = "OGIENVZEKQKSFOIGTWE";
+
 export function GenerateFuncComment(seletedText: string,padLeftSpaceCnt:number= 0) {
 
     // Interpret detailed info of the function 
@@ -75,17 +77,22 @@ function GetFuncInfo(seletedText: string) {
     const Macros = Configuration.Macros;
 
     var rawParam = new Array();
-    var funcInfo = new FuncInfo();    
+    var funcInfo = new FuncInfo();  
 
     // Shrink consecutive spaces into one, and delete \n
-    var raw = seletedText.replace(/\s+/g, " ").replace(/\n/g, "");
+    var raw = seletedText.replace(/\s+/g, " ").replace(/\n/g, "");    
+    // Shink (*fptr)  () to (*fptr)()
+    var raw = seletedText.replace(/\)\s+\(/g, ")(");
+
+    var funcIdx = DetectFunction(raw);
 
     // Split the function string by parenthesis
     // Left part, including modifiers, function name, class name and return type
-    var rawl = raw.substring(0, raw.indexOf("("));
+    var rawl = raw.substring(funcIdx.Start, funcIdx.ParamStart);
     
     // Middle part, including only parameters
-    var rawm = raw.substring(raw.indexOf("(") + 1, raw.indexOf(")"));  
+    var rawm = raw.substring(funcIdx.ParamStart + 1, funcIdx.End);  
+    rawm = rawm.replace(/\*/g, "* "); // solution for param like (int  *a)
 
     // Raw param might be like [""], it is not an empty array
     rawParam = rawm.split(",");
@@ -94,7 +101,7 @@ function GetFuncInfo(seletedText: string) {
     }
 
     // Right part, including only modifiers
-    var rawr = raw.substring(raw.indexOf(")") + 1, raw.length);  
+    var rawr = raw.substring(funcIdx.End + 1, raw.length);  
 
     // Add one space to the 2 sides of our function string, to make the search handy
     rawl = " " + rawl.trim() + " ";
@@ -156,7 +163,6 @@ function GetFuncInfo(seletedText: string) {
         return funcInfo;
     }
 
-
     // Use GetParaInfo function to interpret function info. Very handy
     var borrowedResult = GetParaInfo(rawl);
 
@@ -179,57 +185,33 @@ function GetFuncInfo(seletedText: string) {
 }
 
 
-/**
- * Find text from the given index and stop at a specific char.  
- * Finding EXCLUDES the char of index
- * @param  {string} str source string
- * @param  {number} idx start from this index
- * @param  {string} end end character, result EXCLUDEs it
- * @param  {boolean} forward default=true
- */
-function FindTextFrom(str: string, idx: number, end: string, forward: boolean = true) {
-    // console.log("str = " + str);
-    // console.log("end = " + end);
-    // console.log("idx = " + idx);
-    var res = "";
-    if (forward) {
-        idx++;
-        while (idx < str.length) {
-            if (str[idx] != end) {
-                res = res.concat(str[idx]);
-            } else {
-                return res;
-            }
-            idx++;
-        }
-    } else {
-        idx--;
-        while (idx >= 0) {
-            if (str[idx] != end) {
-                res = str[idx].concat(res);
-            } else {
-                return res;
-            }
-            idx--;
-        }
-    }
-    return res;
+function DetectFunction(raw:string) {
+    var start = 0;
+    var paramStart = 0;
+    var end = 0;
+    var indicator = 0;
 
-}
-
-/**
- * Check viability from given func info string
- * @param  {string} str func info string
- */
- /*
-function CheckViability(v: string) {
-    for (var i of ["public", "protected", "private"]) {
-        if (i == v)
-            return i;
+    end = FindIndex(raw, ")", "right");
+    
+    // Find the last '()' for it definately has parameters in it
+    for (let i = 0; i < raw.length; i++) {
+        if (raw[i] == "(") {
+            if (indicator == 0) {
+                paramStart = i;
+            }
+            indicator++;
+        } else if (raw[i] == ")"){
+            indicator--;
+        }        
     }
-    return "";
+
+    // Return a json, so handy
+    return {
+        "Start": start,
+        "ParamStart": paramStart,
+        "End":end
+    }
 }
-*/
 
 function GetParaInfo(str: string) { 
     // & and var[] cannot exist at the same time
@@ -238,6 +220,26 @@ function GetParaInfo(str: string) {
     // Shrink multiple spaces into one
     str = str.trim().replace(/\s+/g, " ");
 
+
+    //!!! Deal with function pointers
+    // We assume it was a simple situation: e.g. int (*fptr)()
+    var funcPtrs = DetectFunctionPointer(str);
+    
+    // If function pointers are detected
+    if (funcPtrs.length > 0){
+        // Turn function pointers to other unique words that are easy to identify
+        /*for (let k = 0; k < funcPtrs.length; k++) {
+            str = str.replace(funcPtrs[k], UNIQUE_WORD + k);            
+        }*/
+        var fptr = funcPtrs[0].replace(/\s+/g, "");
+        var temp = fptr.match(/\(\*[^\)]+\)/);
+        res.Name = temp[0].substring(2, temp[0].length-1);
+        res.Type = str.replace(/\s+/g, "").replace(res.Name,"");
+
+        return res;
+    }
+    
+    
     // Bracket
     if (str.search(/\[.+\]/g) != -1) {
         res.Bracket = "[" + FindTextFrom(str, str.search(/\[.+\]/g), "]").trim() + "]";
@@ -285,13 +287,101 @@ function GetParaInfo(str: string) {
     // Type and Name
     [res.Type, res.Name] = str.split(" ");
 
+
+
+    //!!! Turn the changed function pointers back
+    for (let k = 0; k < funcPtrs.length; k++) {
+        res.Name = res.Name.replace(UNIQUE_WORD + k, funcPtrs[k].replace(/\*/g," * ").replace(/\s+\*\s+/g,"*"));
+        res.Type = res.Type.replace(UNIQUE_WORD + k, funcPtrs[k].replace(/\*/g," * ").replace(/\s+\*\s+/g,"*"));
+    }
+
     return res;
         
+}
+
+function DetectFunctionPointer(str:string) {
+    var res = new Array();
+    var tempStr = "";
+    var indicator = 0;
+    var indicatorCnt = 0;
+    for (let i = 0; i < str.length; i++) {
+        if (str[i] == "(") {
+            indicator++;
+        } else if (str[i] == ")") {
+            indicator--;
+            if (indicator == 0) {
+                indicatorCnt++;
+            }
+        }
+        if (indicator > 0 || str[i] == ")") {
+            tempStr += str[i];            
+        }
+        if (indicatorCnt == 2) {
+            indicatorCnt = 0;
+            res.push(tempStr);
+            tempStr = "";
+        }
+
+    }
+    return res;
 }
 
 function ConditionalSpace(str:string) {
     return str == "" ? "" : " "; 
 }
+
+function FindIndex(str: string, char: string, direction: string = "left") {
+    if (direction.toLowerCase() == "left") {
+        for (let i = 0; i < str.length; i++) {
+            if (str[i] == char) {
+                return i;
+            }            
+        }
+    } else if (direction.toLowerCase() == "right"){
+        for (let i = str.length - 1; i >= 0; i++) {
+            if (str[i] == char) {
+                return i;
+            }            
+        }
+    }
+    return -1;
+}
+
+/**
+ * Find text from the given index and stop at a specific char.  
+ * Finding EXCLUDES the char of index
+ * @param  {string} str source string
+ * @param  {number} idx start from this index
+ * @param  {string} end end character, result EXCLUDEs it
+ * @param  {boolean} forward default=true
+ */
+function FindTextFrom(str: string, idx: number, end: string, forward: boolean = true) {
+    var res = "";
+    if (forward) {
+        idx++;
+        while (idx < str.length) {
+            if (str[idx] != end) {
+                res = res.concat(str[idx]);
+            } else {
+                return res;
+            }
+            idx++;
+        }
+    } else {
+        idx--;
+        while (idx >= 0) {
+            if (str[idx] != end) {
+                res = str[idx].concat(res);
+            } else {
+                return res;
+            }
+            idx--;
+        }
+    }
+    return res;
+
+}
+
 
 class FuncInfo{
     Param = new Array();

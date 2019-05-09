@@ -51,6 +51,17 @@ cppComment.ShowParamType =  true&nbsp;&nbsp;&nbsp;-> @param {const int &} paraNa
 
 It only works for **C++ files**
 
+### Ver 1.0.2
+
+Support for function pointers. 
+Fix the problem of being unable to interpret "int *var".
+
+### Ver 1.0.1
+
+Align comments to the function. 
+Fix that "virtual" spelled as "vitual". 
+Support for constructors and destructors 
+
 ### Ver 1.0.0
 
 Initialize a version that can only serve the basic requirements. 
