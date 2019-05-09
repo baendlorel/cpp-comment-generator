@@ -1,6 +1,6 @@
 import { Configuration } from './configuration';
 
-export function GenerateFuncComment(seletedText: string) {
+export function GenerateFuncComment(seletedText: string,padLeftSpaceCnt:number= 0) {
 
     // Interpret detailed info of the function 
     var f = GetFuncInfo(seletedText);
@@ -8,16 +8,19 @@ export function GenerateFuncComment(seletedText: string) {
         f.StaticStr = "[static]";
     }
 
+    var padLeftSpace = "".padEnd(padLeftSpaceCnt," ");
+
+
     // Comment text
-    var cmtxt = "/**\n";  
+    var cmtxt = padLeftSpace + "/**\n";  
     
     // The case of a function doesn't came from a class.
     if (f.ClassName != "") {
-        cmtxt += " *" + ConditionalSpace(f.StaticStr) + f.StaticStr + " " + f.ClassName + " \n";        
+        cmtxt += padLeftSpace + " *" + ConditionalSpace(f.StaticStr) + f.StaticStr + " " + f.ClassName + " \n";        
     }
 
     // Add an empty line for YOU to enter your own descriptions
-    cmtxt += " * \n";
+    cmtxt += padLeftSpace + " * \n";
 
     // Parameters & Return infos
     var pnr = new Array();
@@ -38,7 +41,7 @@ export function GenerateFuncComment(seletedText: string) {
     });
 
     // Don't need @return if we have got a 'void'
-    if (f.ReturnType != "void") {        
+    if (f.ReturnType != "void" && f.ReturnType != "") {        
         pnr.push(        " * @return {" + f.ReturnType + "} ");
     }
 
@@ -50,12 +53,12 @@ export function GenerateFuncComment(seletedText: string) {
     });
     maxlen++;
     pnr.forEach((elem) => {         
-        cmtxt += elem.padEnd(maxlen, " ") + ": \n";
+        cmtxt += padLeftSpace + elem.padEnd(maxlen, " ") + ": \n";
     });
 
 
     // Comment end 
-    cmtxt += " */";
+    cmtxt += padLeftSpace + " */";
 
     return cmtxt;
 }   
@@ -67,11 +70,11 @@ export function GenerateFuncComment(seletedText: string) {
 function GetFuncInfo(seletedText: string) {
     
     // Const of modifiers. May be not all of them(mail me if I lost any)
-    const ModifierBeforeFuncName = ["public","private","protected","template","vitual","inline","static","extern","explicit","friend","constexpr"];
+    const ModifierBeforeFuncName = ["public","private","protected","template","virtual","inline","static","extern","explicit","friend","constexpr"];
     const ModifierAfterFuncName = ["=0","=default","=delete","const","volatile","&","&&","override","final","noexcept","throw"];
     const Macros = Configuration.Macros;
 
-    var rawParam;
+    var rawParam = new Array();
     var funcInfo = new FuncInfo();    
 
     // Shrink consecutive spaces into one, and delete \n
@@ -83,8 +86,13 @@ function GetFuncInfo(seletedText: string) {
     
     // Middle part, including only parameters
     var rawm = raw.substring(raw.indexOf("(") + 1, raw.indexOf(")"));  
+
+    // Raw param might be like [""], it is not an empty array
     rawParam = rawm.split(",");
-    
+    if (rawParam.length == 1 && rawParam[0] == "") {
+        rawParam = [];
+    }
+
     // Right part, including only modifiers
     var rawr = raw.substring(raw.indexOf(")") + 1, raw.length);  
 
@@ -134,11 +142,20 @@ function GetFuncInfo(seletedText: string) {
 
     // Reunion the seperated '*'s and align them to the left
     rawl = rawl.replace(/\s+\*/g, "*");
+
     rawParam.forEach(elem => {
         elem = elem.replace(/\s+\*/g, "*");
-        // 合并*结束后，顺手将参数信息解析保存
         funcInfo.Param.push(GetParaInfo(elem));
     });
+
+    // Only have a funcname but no return type, indecating its a constructor or destructor
+    if (rawl.trim().indexOf(" ") == -1) {
+        funcInfo.ClassName = rawl.trim();
+        funcInfo.Name = rawl.trim();
+        funcInfo.ReturnType = "";
+        return funcInfo;
+    }
+
 
     // Use GetParaInfo function to interpret function info. Very handy
     var borrowedResult = GetParaInfo(rawl);

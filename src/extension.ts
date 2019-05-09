@@ -46,20 +46,36 @@ export function activate(context: vscode.ExtensionContext) {
 			// Prepare
 			var selection = editor.selection;
 			var selectedText = editor.document.getText(selection);
-
+			var padLeftSpaceCnt = 0;
+			
 			if (selectedText == "") {
 				var cursorPos = selection.active;
 				selectedText = editor.document.lineAt(cursorPos.line).text;
+
+				// Get how much space on the function's left
+				for (var i = 0; i < selectedText.length; i++){
+					if (selectedText[i] == " ") {
+						padLeftSpaceCnt++;
+					} else {
+						break;
+					}
+				}
+			} else {
+				padLeftSpaceCnt += selection.start.character;
+				// Get how much space on the function's left
+				for (var i = 0; i < selectedText.length; i++){
+					if (selectedText[i] == " ") {
+						padLeftSpaceCnt++;
+					} else {
+						break;
+					}
+				}
 			}
 
-			// Check if the selected text is still empty
-			if (selectedText == "") {
-				vscode.window.showInformationMessage("You didn't select anything.");
-				return;
-			}
+
 
 			
-			var textToInsert = FuncAnalizer.GenerateFuncComment(selectedText);
+			var textToInsert = FuncAnalizer.GenerateFuncComment(selectedText,padLeftSpaceCnt);
 			var startLine = selection.start.line - 1;
 			
 			// If the function locates on the 1st line, then add \n to the end of inserting text
