@@ -3,7 +3,7 @@
 	"publisher": "Hiyajo",
 	"displayName": "Cpp Comment Generator",
 	"description": "Generates comments for the chosen c++ function",
-	"icon": "image/logo.png",
+	"icon": "image/icon.png",
 	"version": "1.0.0",
 	"engines": {
 		"vscode": "^1.33.0"
