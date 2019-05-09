@@ -82,7 +82,7 @@ function GetFuncInfo(seletedText: string) {
     // Shrink consecutive spaces into one, and delete \n
     var raw = seletedText.replace(/\s+/g, " ").replace(/\n/g, "");    
     // Shink (*fptr)  () to (*fptr)()
-    var raw = seletedText.replace(/\)\s+\(/g, ")(");
+    raw = raw.replace(/\)\s+\(/g, ")(");
 
     var funcIdx = DetectFunction(raw);
 
@@ -338,7 +338,7 @@ function FindIndex(str: string, char: string, direction: string = "left") {
             }            
         }
     } else if (direction.toLowerCase() == "right"){
-        for (let i = str.length - 1; i >= 0; i++) {
+        for (let i = str.length - 1; i >= 0; i--) {
             if (str[i] == char) {
                 return i;
             }            

@@ -24,6 +24,7 @@ It works like another extension named ["Add jsdoc comment"](https://marketplace.
 
 
     inline    static returnType *   * * & class1Name::funcName(type1  var1,
+    int* (*f1)() ,
     const    type2   * * 
        var2 [  class2Name::
     var ] ) {}
@@ -31,12 +32,14 @@ It works like another extension named ["Add jsdoc comment"](https://marketplace.
 
 and the result is 
 
-    /**
-     * [static] From classname
-     * 
-     * @param  {typename} var1
-     * @param  {const typename*** [wer::Sd]} var2
-     */
+   /**
+    * [static] class1Name 
+    * 
+    * @param  {type1} var1                      : 
+    * @param  {int*(*)()} f1                    : 
+    * @param  {type2** [class2Name:: var]} var2 : 
+    * @return {returnType***}                   : 
+    */
  
 
 ## Settings
