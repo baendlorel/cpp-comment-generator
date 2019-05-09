@@ -32,14 +32,14 @@ It works like another extension named ["Add jsdoc comment"](https://marketplace.
 
 and the result is 
 
-   /**
-    * [static] class1Name 
-    * 
-    * @param  {type1} var1                      : 
-    * @param  {int*(*)()} f1                    : 
-    * @param  {type2** [class2Name:: var]} var2 : 
-    * @return {returnType***}                   : 
-    */
+    /**
+        * [static] class1Name 
+        * 
+        * @param  {type1} var1                      : 
+        * @param  {int*(*)()} f1                    : 
+        * @param  {type2** [class2Name:: var]} var2 : 
+        * @return {returnType***}                   : 
+        */
  
 
 ## Settings
