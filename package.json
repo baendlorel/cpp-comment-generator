@@ -2,7 +2,8 @@
 	"name": "cppcomment",
 	"publisher": "Hiyajo",
 	"displayName": "Cpp Comment Generator",
-	"description": "Generates comments for the chosen c++ function",
+	"description": "Generates comments for the chosen C++ function",
+	"description_zh": "为所选的 C++ 函数生成注释",
 	"icon": "image/icon.png",
 	"version": "1.0.2",
 	"engines": {
@@ -14,7 +15,8 @@
 	},
 	"categories": [
 		"Other"
-	],"activationEvents": [
+	],
+	"activationEvents": [
 		"onCommand:extension.GenerateCppComment"
 	],
 	"main": "./out/extension.js",
@@ -27,9 +29,10 @@
 		],
 		"keybindings": [
 			{
-			"command": "extension.GenerateCppComment",
-			"key": "ctrl+alt+z"
-		}],
+				"command": "extension.GenerateCppComment",
+				"key": "ctrl+alt+z"
+			}
+		],
 		"menus": {
 			"editor/context": [
 				{
@@ -39,31 +42,32 @@
 				}
 			]
 		},
-		"configuration":{
+		"configuration": {
 			"title": "Cpp Function Comment Configuration",
-			"type":"object",
+			"type": "object",
 			"properties": {
 				"cppComment.CompleteParamType": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enables param comment to show {const int &} instead of {int}.",
-                    "scope": "window"
-				}, 
+					"type": "boolean",
+					"default": false,
+					"description": "Enables param comment to show {const int &} instead of {int}.",
+					"scope": "window"
+				},
 				"cppComment.ShowParamType": {
-						"type": "boolean",
-						"default": true,
-						"description": "Tell the program whether to show {const int &} or not.",
-						"scope": "window"
+					"type": "boolean",
+					"default": true,
+					"description": "Tell the program whether to show {const int &} or not.",
+					"scope": "window"
 				},
 				"cppComment.Macros": {
-                    "type": "array",
-                    "default": ["API"],
-                    "description": "Tell the program to avoid these words.",
-                    "scope": "window"
-                }
+					"type": "array",
+					"default": [
+						"API"
+					],
+					"description": "Tell the program to avoid these words.",
+					"scope": "window"
+				}
 			}
 		}
-
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
